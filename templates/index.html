@@ -1,0 +1,164 @@
+{% extends "layout.html" %}
+
+{% block container %}
+
+
+
+<div class="flex flex-col gap-6">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <form action="/save" method="POST" class="w-full p-6 bg-gray-100 shadow-lg rounded-xl">
+        {{ form.csrf_token }}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <!-- Datos del cliente -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div>
+                <label for="nombre" class="block text-gray-700 font-semibold mb-1">Nombre:</label>
+                <input id="nombre" name="nombre" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            </div>
+            <div>
+                <label for="direccion" class="block text-gray-700 font-semibold mb-1">Dirección:</label>
+                <input id="direccion" name="direccion" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            </div>
+            <div>
+                <label for="telefono" class="block text-gray-700 font-semibold mb-1">Teléfono:</label>
+                <input id="telefono" name="telefono" type="tel" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            </div>
+        </div>
+
+        <!-- Sección de opciones -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Tamaño de pizza (Radio buttons) -->
+            <div>
+                <h3 class="font-semibold mb-2">Tamaño</h3>
+                <div class="space-y-2">
+                    <label class="flex items-center">
+                        <input id="tamaño" name="tamaño" type="radio" value="chica" class="mr-2" required>
+                        Chica $40
+                    </label>
+                    <label class="flex items-center">
+                        <input id="tamaño" name="tamaño" type="radio" value="mediana" class="mr-2">
+                        Mediana $80
+                    </label>
+                    <label class="flex items-center">
+                        <input id="tamaño" name="tamaño" type="radio" value="grande" class="mr-2">
+                        Grande $120
+                    </label>
+                </div>
+            </div>            
+    
+            <!-- Ingredientes adicionales (Checkboxes) -->
+            <div>
+                <h3 class="font-semibold mb-2">Ingredientes</h3>
+                <div class="space-y-2">
+                    <label class="flex items-center">
+                        <input id="jamon" name="ingredientes" type="checkbox" value="jamon" class="mr-2">
+                        Jamón $10
+                    </label>
+                    <label class="flex items-center">
+                        <input id="pina" name="ingredientes" type="checkbox" value="pina" class="mr-2">
+                        Piña $10
+                    </label>
+                    <label class="flex items-center">
+                        <input id="champinones" name="ingredientes" type="checkbox" value="champinones" class="mr-2">
+                        Champiñones $10
+                    </label>
+                </div>
+            </div>
+    
+            <!-- Cantidad de pizzas -->
+            <div>
+                <h3 class="font-semibold mb-2">Número de pizzas</h3>
+                <input id="cantidadPizzas" name="cantidadPizzas" type="number" min="1" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                <button id="btnAgregar" type="submit" class="w-full mt-3 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                    Agregar
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <div class="flex gap-4 p-4 bg-gray-100 border border-gray-300 rounded-lg shadow-md">
+        <!-- Sección Izquierda (Tabla) -->
+        <div class="w-2/3">
+            <table id="tablaPedidos" class="w-full border-collapse border border-gray-300 rounded-lg shadow-sm">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th class="border border-gray-300 px-4 py-2 text-center">Tamaño</th>
+                        <th class="border border-gray-300 px-4 py-2 text-center">Ingredientes</th>
+                        <th class="border border-gray-300 px-4 py-2 text-center">Num. Pizzas</th>
+                        <th class="border border-gray-300 px-4 py-2 text-center">Sub Total</th>
+                        <th class="border border-gray-300 px-4 py-2 text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for registro in registros %}
+                    <tr>
+                        <td class="border border-gray-300 px-4 py-2 text-center">{{ registro.tamaño }}</td>
+                        <td class="border border-gray-300 px-4 py-2 text-center">{{ registro.ingredientes }}</td>
+                        <td class="border border-gray-300 px-4 py-2 text-center">{{ registro.cantidadPizzas }}</td>
+                        <td class="border border-gray-300 px-4 py-2 text-center">${{ registro.subtotal }}</td>
+                        <td class="border border-gray-300 px-4 py-2 text-center">
+                            <form action="{{ url_for('delete') }}" method="POST" style="display:inline;">
+                                {{ form.csrf_token }}
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                <input type="hidden" name="id" value="{{ loop.index }}">
+                                <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition duration-300">
+                                    Quitar
+                                </button>
+                            </form>
+                        </td>                                                
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <!-- Botones debajo de la tabla -->
+            <form action="{{ url_for('cargar_pedidos') }}" method="POST">
+                {{ form.csrf_token }}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <div class="flex gap-4 mt-4">
+                    <button type="submit" class="px-6 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition duration-300">
+                        Terminar
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Sección Derecha (Ventas) -->
+        <div class="w-1/3">
+            <div class="border border-gray-300 bg-gray-100 p-4 rounded-lg shadow-md">
+                <h3 class="font-bold mb-2 text-lg">Ventas del día</h3>
+                
+                <!-- Mostrar los registros -->
+                <ul>
+                    {% for pedido in pedidos %}
+                        <li>{{ pedido.nombre }} - ${{ pedido.subtotal }}</li>
+                    {% endfor %}
+                </ul>
+        
+                <!-- Mostrar mensaje de ventas totales o de error -->
+                <p class="mt-4 font-bold">
+                    Ventas totales del día: 
+                    {% if ventas_totales %}
+                        <strong class="text-green-600">{{ ventas_totales }}</strong>
+                    {% elif mensaje_error %}
+                        <strong class="text-red-600">{{ mensaje_error }}</strong>
+                    {% else %}
+                        <strong>$0</strong>
+                    {% endif %}
+                </p>
+                
+                <!-- Formulario para hacer la solicitud -->
+                <form action="{{ url_for('ventas_totales') }}" method="post">
+                    {{ form.csrf_token }}
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <button class="mt-4 w-full bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300">
+                        Ventas totales por día
+                    </button>
+                </form>
+            </div>
+        </div>        
+        
+    </div>
+</div>
+
+{%endblock%}
